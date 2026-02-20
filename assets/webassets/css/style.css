@@ -1,0 +1,33 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #131722;
+}
+#container {
+    height: 100vh;
+    width: 100vw;
+    min-width: 310px;
+}
+.chart-title {
+    color: yellow;
+    background: #131722;
+    font-family: monospace;
+    padding: 0.3rem;
+    font-weight: bold;
+}
+.mainSeries {
+    top: 0;
+    right: 60px;
+    position: absolute;
+    z-index: 99999;
+}
+.kcrChart {
+    top: 50%;
+    position: absolute;
+    z-index: 99999;
+}
+.kcxChart {
+    top: 71%;
+    position: absolute;
+    z-index: 99999;
+}

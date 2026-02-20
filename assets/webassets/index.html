@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang=en>
+
+<head>
+	<meta charset="utf-8">
+	<meta name=viewport content="width=device-width,initial-scale=1">
+	<title id=title></title>
+	<link rel=stylesheet href="./css/style.css?v=101">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Anton&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+	<div id=container>
+		<div id=paneTitle class="kcrChart chart-title">
+		</div>
+		<div id=paneTitle2 class="kcxChart chart-title">
+		</div>
+	</div>
+	<script src="./js/chart.min.js?v=102"></script>
+	<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+	<script>
+		// Get the current URL
+		const currentUrl = window.location.href;
+		const url = new URL(currentUrl);
+		const queryParams = new URLSearchParams(url.search);
+		//const pair = queryParams.get('pair');
+		pair='USDJPY.ca';
+		document.getElementById('title').text = pair;
+		async function initChartWithHistory(jsondata) {
+			// Sample data
+			 
+			 result = '';
+			if (typeof jsondata === "string") {
+        		result = JSON.parse(jsondata); // Parse JSON string into object
+			} else {
+				result = jsondata; // Use as-is if already an object
+			}
+
+			console.log(' result is ',result);
+			console.log(' result data is ',result.data);
+// Use result just like you would if it came from an API
+const data = result.data.reverse().map(d => ({
+    time: parseInt(Date.parse(d.timestamp.replace(/\./g, '-') + ":00")) / 1000,
+    open: d.twb_open,
+    high: d.twb_high,
+    low: d.twb_low,
+    close: d.twb_close,
+    value_kcr: d.ksi_red < 100 ? d.ksi_red : d.ksi_green,
+    color_kcr: d.ksi_red < 100 ? "red" : "green",
+    kcx: d.kcx,
+    kcx_buy_strategy_2: d.kcx_buy_strategy_2,
+    kcx_add_strategy_3: d.kcx_add_strategy_3,
+    kcx_blink_bar_candles_back: d.kcx_blink_bar_candles_back,
+    ksi_text: d.ksi_text,
+    kcx_text: d.kcx_text,
+}));
+
+console.log(result); // You still have access to result
+console.log(data);
+ 
+			// Sort and remove duplicates to avoid error :  Assertion failed: data must be asc ordered by time, index=15, time=1725384300000, prev time=1725384300000
+			const sortedData = data.sort((a, b) => a.time - b.time)
+				.filter((item, index, arr) => index === 0 || item.time !== arr[index - 1].time);
+
+			const lastBarBlink = sortedData[sortedData.length - 1].kcx_blink_bar_candles_back;
+
+			const dw = sortedData.map(d => ({
+				time: d.time,
+				open: d.open,
+				high: d.high,
+				low: d.low,
+				close: d.close,
+			}));
+
+			const kcr = sortedData.map(d => ({
+				time: d.time,
+				value: d.value_kcr,
+				color: d.color_kcr,
+			}));
+
+			const kcx = sortedData.map(d => ({
+				time: d.time,
+				value: d.kcx === 0 ? 0 : d.kcx <= -300 ? -300 : d.kcx,
+				color: "#1e90ff",
+			}));
+
+			const kcx_blink = sortedData.map(d => ({
+				time: d.time,
+				value: d.kcx,
+				color: "#7fff00"
+			}));
+
+			const symbols = sortedData.reduce((e, d) => {
+				if (Number(d.kcx_add_strategy_3) > 0 && Number(d.kcx_buy_strategy_2) > 0) {
+					e.push({
+						time: d.time,
+						position: 'belowBar',
+						color: '#fbbf8d',
+						shape: 'doubleDiamond',
+					});
+				}
+				else if (Number(d.kcx_add_strategy_3) > 0) {
+					e.push({
+						time: d.time,
+						position: 'belowBar',
+						color: '#fbbf8d',
+						shape: 'diamondSQ',
+					});
+				}
+				else if (Number(d.kcx_buy_strategy_2) > 0) {
+					e.push({
+						time: d.time,
+						position: 'belowBar',
+						color: 'cyan',
+						shape: 'diamond',
+					});
+				}
+				return e;
+			}, []);
+			
+			document.getElementById('paneTitle').innerHTML = sortedData[sortedData.length - 1].ksi_text;
+			document.getElementById('paneTitle2').innerHTML = sortedData[sortedData.length - 1].kcx_text;
+	
+			const diamonds = symbols.sort((a, b) => a.time - b.time).filter((item, index, arr) => index === 0 || item.time !== arr[index - 1].time);
+			var chart = LightweightCharts.createChart(document.getElementById('container'), {
+				layout: {
+					backgroundColor: '#131722',
+					textColor: '#D9D9D9',
+				},
+				grid: {
+					vertLines: {
+						color: '#2B2B43'
+					},
+					horzLines: {
+						color: '#2B2B43'
+					},
+				},
+				timeScale: {
+					borderColor: '#4A4A6A',
+					timeVisible: true,
+					secondsVisible: true,
+					minBarSpacing: 0.5,
+					barSpacing: 5,
+					tickMarkFormatter: (time, tickMarkType, locale) => {
+						const date = new Date(time * 1000);
+						const day = date.getDate();
+						const month = date.toLocaleString(locale, {
+							month: 'short'
+						});
+						const hour = String(date.getHours())
+							.padStart(2, '0');
+						const minute = String(date.getMinutes())
+							.padStart(2, '0');
+						return `${day} ${month} ${hour}:${minute}`;
+					},
+					ticksVisible: true,
+					rightOffset: 10,
+				},
+				rightPriceScale: {
+					borderColor: '#555555',
+					scaleMargins: {
+						top: 0.1,
+						bottom: 0.1,
+					},
+				},
+			});
+
+			// 1. Main Candlestick Chart
+			var mainSeries = chart.addCandlestickSeries({
+				priceLineVisible: false,
+				lastValueVisible: false, //test to see if it removes the price label
+				upColor: '#f4f802',
+				downColor: '#e42e07',
+				borderDownColor: '#e42e07',
+				borderUpColor: '#f4f802',
+				wickDownColor: '#e42e07',
+				wickUpColor: '#f4f802',
+				pane: 0,
+				background: {
+					type: 'solid',
+					color: '#131722'
+				}
+			});
+			mainSeries.setData(dw);
+			//mainSeries.setMarkers(diamonds)
+
+			// 2. KCR Chart (Boys Buying)
+			var kcrChart = chart.addHistogramSeries({
+				pane: 1,
+				priceLineVisible: false,
+				lastValueVisible: false, //test to see if it removes the price label
+			});
+
+			kcrChart.setData(kcr);
+
+			// 3. KCX Chart Blink
+			var kcxChartBlink = chart.addHistogramSeries({
+				autoscaleInfoProvider: () => ({
+					priceRange: {
+						minValue: -400,
+						maxValue: -100,
+					},
+				}),
+				lastValueVisible: false, //test to see if it removes the price label
+				pane: 2,
+				priceLineVisible: false,
+			});
+			kcxChartBlink.setData(kcx_blink);
+
+			// 4. KCX Chart
+			var kcxChart = chart.addHistogramSeries({
+				autoscaleInfoProvider: () => ({
+					priceRange: {
+						minValue: -400,
+						maxValue: -100,
+					},
+				}),
+				lastValueVisible: false,
+				pane: 2,
+				priceLineVisible: false, //test to see if it removes the price label
+			});
+			kcxChart.setData(kcx);
+
+			//Lines
+			let draw_data = result.data[result.data.length - 1];
+			// OP
+			let op_line = mainSeries.createPriceLine({
+				price: result.data[result.data.length - 1].op_line,
+				color: 'white',
+				lineWidth: 1,
+				lineStyle: 2,
+				axisLabelVisible: true,
+				title: 'OP',
+			});
+			
+			// MLP
+			let mlp_line = mainSeries.createPriceLine({
+				price: draw_data.mlp_line,
+				color: 'khaki',
+				lineWidth: 1,
+				lineStyle: 2,
+				axisLabelVisible: true,
+				title: 'MLP',
+			});
+			// KTR + 1 
+			let ktr_plus_1 = mainSeries.createPriceLine({
+				price: draw_data.ktr_plus_1,
+				color: 'LawnGreen',
+				lineWidth: 1,
+				lineStyle: 3,
+				axisLabelVisible: true,
+				title: 'KTR+1',
+			});
+			// KTR + 2 
+			let ktr_plus_2 = mainSeries.createPriceLine({
+				price: draw_data.ktr_plus_2,
+				color: 'yellow',
+				lineWidth: 1,
+				lineStyle: 3,
+				axisLabelVisible: true,
+				title: 'KTR+2',
+			});
+			// KTR + 3 
+			let ktr_plus_3 = mainSeries.createPriceLine({
+				price: draw_data.ktr_plus_3,
+				color: 'GoldenRod',
+				lineWidth: 1,
+				lineStyle: 3,
+				axisLabelVisible: true,
+				title: 'KTR+3',
+			});
+			// KTR - 1 
+			let ktr_minus_1 = mainSeries.createPriceLine({
+				price: draw_data.ktr_minus_1,
+				color: 'LawnGreen',
+				lineWidth: 1,
+				lineStyle: 3,
+				axisLabelVisible: true,
+				title: 'KTR-1',
+			});
+			// KTR - 2 
+			let ktr_minus_2 = mainSeries.createPriceLine({
+				price: draw_data.ktr_minus_2,
+				color: 'yellow',
+				lineWidth: 1,
+				lineStyle: 3,
+				axisLabelVisible: true,
+				title: 'KTR-2',
+			});
+			// KTR - 3 
+			let ktf_minus_3 = mainSeries.createPriceLine({
+				price: draw_data.ktf_minus_3,
+				color: 'GoldenRod',
+				lineWidth: 1,
+				lineStyle: 3,
+				axisLabelVisible: true,
+				title: 'KTR-3',
+			});
+			// Pivote-1 
+			let pivot_1 = mainSeries.createPriceLine({
+				price: draw_data.pivot_1,
+				color: draw_data.pivot_colour,
+				lineWidth: 1,
+				lineStyle: 0,
+				axisLabelVisible: true,
+				title: 'Pivot 01',
+			});
+			// Pivote-2 
+			let pivot_2 = mainSeries.createPriceLine({
+				price: draw_data.pivot_2,
+				color: draw_data.pivot_colour,
+				lineWidth: 1,
+				lineStyle: 0,
+				axisLabelVisible: true,
+				title: 'Pivot 02',
+			});
+			// MA-200
+			let ma_200 = mainSeries.createPriceLine({
+				price: draw_data.ma_200,
+				color: 'orange',
+				lineWidth: 1,
+				lineStyle: 0,
+				axisLabelVisible: true,
+				title: '200MA',
+			});
+			// WMA-30
+			let wma = mainSeries.createPriceLine({
+				price: draw_data.wma,
+				color: 'Chartreuse',
+				lineWidth: 1,
+				lineStyle: 0,
+				axisLabelVisible: true,
+				title: '30MA',
+			});
+			if (draw_data.tp1 > 0) {
+				// TP-1
+				var tp1 = mainSeries.createPriceLine({
+					price: draw_data.tp1,
+					color: draw_data.tp1_colour,
+					lineWidth: 1,
+					lineStyle: 0,
+					axisLabelVisible: true,
+					title: 'KCB 01',
+				});
+			}
+			if (draw_data.tp2 > 0) {
+				// TP-2
+				var tp2 = mainSeries.createPriceLine({
+					price: draw_data.tp2,
+					color: draw_data.tp2_colour,
+					lineWidth: 1,
+					lineStyle: 0,
+					axisLabelVisible: true,
+					title: 'KCB 02',
+				});
+			}
+			if (draw_data.tp3 > 0) {
+				// TP-3
+				var tp3 = mainSeries.createPriceLine({
+					price: draw_data.tp3,
+					color: draw_data.tp3_colour,
+					lineWidth: 1,
+					lineStyle: 0,
+					axisLabelVisible: true,
+					title: 'KCB 03',
+				});
+			}
+			// close price
+			let closeprice_line = mainSeries.createPriceLine({
+				priceLineSource: {
+					LastBar: 0
+				},
+				price: draw_data.close,
+				color: 'gray',
+				lineWidth: 1,
+				lineStyle: 0,
+				axisLabelVisible: true,
+				title: '',
+			});
+
+			const socketUrl = 'https://cgmembers.com';
+			const socket = io(socketUrl);
+			socket.on('chart.' + pair, (chartData) => {
+				const newData = {
+					buffer: chartData[0],
+					is_first_tick: chartData[1],
+					symbol: chartData[2],
+					timeframe: chartData[3],
+					timestamp: chartData[4],
+					twb_open: parseFloat(chartData[5]),
+					twb_high: parseFloat(chartData[6]),
+					twb_low: parseFloat(chartData[7]),
+					twb_close: parseFloat(chartData[8]),
+					open: parseFloat(chartData[9]),
+					high: parseFloat(chartData[10]),
+					low: parseFloat(chartData[11]),
+					close: parseFloat(chartData[12]),
+					pivots_buy_strategy_1: chartData[13],
+					pivots_sell_strategy_1: chartData[14],
+					kcx_symbol: chartData[15],
+					op_line: parseFloat(chartData[16]),
+					mlp_line: parseFloat(chartData[17]),
+					ktr_plus_1: parseFloat(chartData[18]),
+					ktr_plus_2: parseFloat(chartData[19]),
+					ktr_plus_3: parseFloat(chartData[20]),
+					ktr_minus_1: parseFloat(chartData[21]),
+					ktr_minus_2: parseFloat(chartData[22]),
+					ktf_minus_3: parseFloat(chartData[23]),
+					pivot_1: parseFloat(chartData[24]),
+					pivot_2: parseFloat(chartData[25]),
+					pivot_colour: chartData[26],
+					tp1: parseFloat(chartData[27]),
+					tp1_colour: chartData[28],
+					tp2: parseFloat(chartData[29]),
+					tp2_colour: chartData[30],
+					tp3: parseFloat(chartData[31]),
+					tp3_colour: chartData[32],
+					wma: parseFloat(chartData[33]),
+					wma_symbol: chartData[34],
+					ma_200: parseFloat(chartData[35]),
+					gth_start: chartData[36],
+					gth_end: chartData[37],
+					gth2_start: chartData[38],
+					gth2_end: chartData[39],
+					kcx: parseFloat(chartData[40]),
+					kcx_text: chartData[41],
+					kcx_blink_bar: parseFloat(chartData[42]),
+					kcx_blink_bar_candles_back: chartData[43],
+					ksi_green: parseFloat(chartData[44]),
+					ksi_red: parseFloat(chartData[45]),
+					ksi_text: chartData[46],
+					terminating_character: chartData[47],
+					kcx_buy_strategy_2: chartData[48],
+					kcx_add_strategy_3: chartData[49]
+				};
+
+				document.getElementById('paneTitle').innerHTML = newData.ksi_text;
+				document.getElementById('paneTitle2').innerHTML = newData.kcx_text;
+
+				// Convert timestamp to required format
+				const time = parseInt(Date.parse(newData.timestamp.replace(/\./g, '-') + ":00")) / 1000;
+				// Update candlestick data
+				const candleData = {
+					time: time,
+					open: newData.twb_open,
+					high: newData.twb_high,
+					low: newData.twb_low,
+					close: newData.twb_close
+				};
+				mainSeries.update(candleData);
+				// Update KCR histogram
+				const kcrData = {
+					time: time,
+					value: newData.ksi_red < 100 ? newData.ksi_red : newData.ksi_green,
+					color: newData.ksi_red < 100 ? "red" : "green"
+				};
+				kcrChart.update(kcrData);
+				// Update KCX histogram
+				const kcxData = {
+					time: time,
+					value: newData.kcx === 0 ? 0 : newData.kcx <= -300 ? -300 : newData.kcx,
+					color: "#1e90ff"
+				};
+				kcxChart.update(kcxData);
+				// Update KCX blink histogram
+				const kcxBlinkData = {
+					time: time,
+					value: newData.kcx,
+					color: "#7fff00"//"green"
+				};
+
+				//update the array with new data
+				let count = 0;
+
+				while (count <= kcx_blink.length - 1) {
+					if (kcx_blink[count].time == kcxBlinkData.time) {
+						if (kcxBlinkData.value < -300) {
+							kcx_blink[count].value = kcxBlinkData.value;
+						}
+						else {
+							kcx_blink[count].value = 0;
+						}
+						break;
+					}
+					count++;
+				}
+
+
+				if (count == kcx_blink.length) {
+					kcx_blink.push(kcxBlinkData);
+				}//end update array with new data
+
+
+				//Check for Marker
+				let  newMarker = {};
+				if (Number(newData.kcx_add_strategy_3) > 0 && Number(newData.kcx_buy_strategy_2) > 0) {
+					newMarker ={
+						time: time,
+						position: 'belowBar',
+						color: '#fbbf8d',
+						shape: 'doubleDiamond',
+					};
+				}
+				else if (Number(newData.kcx_add_strategy_3) > 0) {
+					newMarker ={
+						time: time,
+						position: 'belowBar',
+						color: '#fbbf8d',
+						shape: 'diamondSQ',
+					};
+				}
+				else if (Number(newData.kcx_buy_strategy_2) > 0) {
+					newMarker ={
+						time: time,
+						position: 'belowBar',
+						color: 'cyan',
+						shape: 'diamond',
+					};
+				}
+				
+				// Update markers if needed
+				if (Number(newData.kcx_add_strategy_3) > 0 || Number(newData.kcx_buy_strategy_2) > 0) {
+					console.log("new diamond");
+
+					//update diamond array wiht new data
+					let diamondcount = 0;
+
+					while (diamondcount <= diamonds.length - 1) {
+						if (diamonds[diamondcount].time == newMarker.time) {
+							diamonds[diamondcount].position = newMarker.position;
+							diamonds[diamondcount].color = newMarker.color;
+							diamonds[diamondcount].shape = newMarker.shape;
+							console.log("diamond found");
+							break;
+						}
+						diamondcount++;
+					}
+					if (diamondcount == diamonds.length) {
+						console.log("add new diamond to array");
+						diamonds.push(newMarker);
+						mainSeries.setMarkers(diamonds);
+					}//end update array with new data
+
+
+				}
+				else {
+					let diamondcount = 0;
+					while (diamondcount <= diamonds.length - 1) {
+						if (diamonds[diamondcount].time == newMarker.time) {
+							console.log("remove diamond from array");
+							diamonds.splice(diamondcount, 1);
+
+						}
+						diamondcount++;
+					}
+					mainSeries.setMarkers(diamonds);
+				}
+
+				// Update price lines
+				op_line.applyOptions({
+					price: newData.op_line
+				});
+				/*kcx_line.applyOptions({
+					price: newData.kcx_blink_bar
+				});*/
+				mlp_line.applyOptions({
+					price: newData.mlp_line
+				});
+				ktr_plus_1.applyOptions({
+					price: newData.ktr_plus_1
+				});
+				ktr_plus_2.applyOptions({
+					price: newData.ktr_plus_2
+				});
+				ktr_plus_3.applyOptions({
+					price: newData.ktr_plus_3
+				});
+				ktr_minus_1.applyOptions({
+					price: newData.ktr_minus_1
+				});
+				ktr_minus_2.applyOptions({
+					price: newData.ktr_minus_2
+				});
+				ktf_minus_3.applyOptions({
+					price: newData.ktf_minus_3
+				});
+				pivot_1.applyOptions({
+					price: newData.pivot_1,
+					color: newData.pivot_colour
+				});
+				pivot_2.applyOptions({
+					price: newData.pivot_2,
+					color: newData.pivot_colour
+				});
+				ma_200.applyOptions({
+					price: newData.ma_200
+				});
+				wma.applyOptions({
+					price: newData.wma
+				});
+
+				//added tp updates left out in previous version
+ 
+			});
+			//we must update our blinking bar before we set data
+
+			let isBlinking = true;
+			const blinkUpperHalf = () => {
+				let last_index = 0;
+				kcx_blink.forEach(function (item, index, array) {
+					if (item.value < -300) {
+						last_index = index;
+						return;
+					}
+				});
+				console.log(last_index);
+				let single_bar = kcx_blink[last_index];
+
+				let blink_index = kcx_blink.findIndex(x => x.time === single_bar.time);
+				kcxChartBlink.setData(isBlinking ? kcx_blink.map((d, i) => ({
+					...d,
+					color: i == blink_index ? '#131722' : '#7fff00'
+				}))
+					: kcx_blink
+				);
+				isBlinking = !isBlinking;
+			};
+			const blinkInterval = setInterval(blinkUpperHalf, 500);
+
+			//end update
+
+			kcxChartBlink.setData(kcx_blink);
+			mainSeries.setMarkers(diamonds);
+			console.log("version1.45");
+		}
+		initChartWithHistory();
+	</script>
+</body>
+
+</html>

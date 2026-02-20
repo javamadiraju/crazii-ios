@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+  font-family: 'Exo', sans-serif;
+}
+
+.scaffold {
+  display: flex;
+  flex-direction: column;
+  width: 394px;
+  height: auto;
+  background-color: #ffffff;
+}
+
+.header-component {
+  flex-grow: 0;
+  height: auto;
+}
+
+.zoom-meeting-title-component {
+  flex-grow: 0;
+  height: auto;
+}
+
+.zoom-session-card-component {
+  flex-grow: 0;
+  height: auto;
+}
+
+.teacher-list-component {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.bottom-navigation-component {
+  flex-grow: 0;
+  height: 70px;
+}
+

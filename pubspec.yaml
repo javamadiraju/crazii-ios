@@ -1,0 +1,125 @@
+name: freebankingapp
+description: Crazii - A Flutter app for iOS with banking and charting features.
+publish_to: 'none'
+
+version: 2.0.0+1
+
+environment:
+  sdk: '>=3.3.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations: 
+    sdk: flutter
+  permission_handler: ^12.0.0+1 
+
+  # Authentication
+  google_sign_in: ^6.2.2
+  email_validator: ^3.0.0
+  intl_phone_field: ^3.1.0
+  pinput: ^5.0.0
+  device_info_plus: ^10.1.0
+
+  # Media
+  image_picker: ^1.1.2 
+  cached_network_image: ^3.4.1 
+
+  # UI & UX
+  cupertino_icons: ^1.0.2
+  flutter_native_splash: ^2.2.16
+  flutter_launcher_icons: ^0.14.3
+  flutter_svg: ^2.0.4
+  dots_indicator: ^3.0.0
+  table_calendar: ^3.0.9
+  fluttertoast: ^8.2.2
+  get:  
+  sizer: ^3.0.5
+  nb_utils: ^7.0.3
+
+  # Web & Networking
+  http: ^1.2.1
+  html:
+  html_unescape: ^2.0.0
+  web_socket_channel: ^3.0.0
+  socket_io_client: ^3.0.2
+
+  # Storage
+  shared_preferences: ^2.0.15
+  path_provider: ^2.1.5
+  flutter_cache_manager: ^3.3.0
+
+  # Payments (mysql1 removed - not supported on iOS)
+  flutter_stripe: ^11.4.0
+
+  # Charts & Custom UI
+  syncfusion_flutter_charts: ^28.2.4+1
+  matrix_gesture_detector: ^0.2.0-nullsafety.1
+  csv: ^6.0.0
+  multi_dropdown: ^3.0.1
+  adoptive_calendar: ^0.2.0
+
+  # Utils
+  intl: 0.20.2
+  provider: ^6.1.0
+  crypto: ^3.0.6
+  video_player: ^2.9.1
+  video_thumbnail: ^0.5.3
+  chewie: ^1.10.0
+  webview_flutter: ^4.10.0
+  timeago: ^3.2.2
+  flutter_html: ^3.0.0
+  flutter_local_notifications: ^19.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+# =====================================
+# iOS SPLASH SCREEN CONFIGURATION
+# =====================================
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/applogo.png
+  android: false
+  ios: true
+  ios_content_mode: center
+
+# =====================================
+# iOS APP ICON CONFIGURATION
+# =====================================
+flutter_icons:
+  android: false
+  ios: true
+  image_path: "assets/applogo.png"
+  remove_alpha_ios: true
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/freebankingapp_assets/freebankingapp_pngimg/
+    - assets/freebankingapp_assets/freebankingapp_svgicons/
+    - assets/appicons/
+    - assets/img/
+    - assets/applogo.png
+    - assets/splash.png
+    - assets/default-user.png
+    - assets/webassets/
+    - assets/webassets/js/
+    - assets/webassets/css/
+
+  fonts:
+    - family: MontserratBold
+      fonts:
+        - asset: assets/freebankingapp_assets/freebankingapp_fonts/Montserrat-Bold.ttf
+    - family: MontserratMedium
+      fonts:
+        - asset: assets/freebankingapp_assets/freebankingapp_fonts/Montserrat-Medium.ttf
+    - family: MontserratRegular
+      fonts:
+        - asset: assets/freebankingapp_assets/freebankingapp_fonts/Montserrat-Regular.ttf
+    - family: MontserratSemiBold
+      fonts:
+        - asset: assets/freebankingapp_assets/freebankingapp_fonts/Montserrat-SemiBold.ttf
