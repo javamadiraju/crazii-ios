@@ -14,7 +14,7 @@ This is the iOS version of the Crazii Flutter application.
 ### 1. Get Flutter Dependencies
 
 ```bash
-cd D:\vijay\crazii\craazi-ios
+cd /path/to/crazii-ios
 flutter pub get
 ```
 
@@ -101,6 +101,15 @@ Or in Xcode:
 flutter build ios --release
 ```
 
+## CI / GitHub Actions
+
+Builds run automatically on push/PR to `main` and can be triggered manually:
+
+- **Build iOS** (macOS): `flutter build ios --no-codesign`, artifact `ios-build` (Runner.app) retained 14 days.
+- **Analyze** (Ubuntu): `flutter analyze` to check for issues.
+
+Go to the **Actions** tab in the repo to run a workflow or download the latest iOS build artifact.
+
 ## Troubleshooting
 
 ### Pod Install Fails
@@ -125,7 +134,7 @@ This app requires **iOS 13.0** or later.
 ## App Structure
 
 ```
-craazi-ios/
+crazii-ios/
 ├── lib/                    # Dart source code (shared with Android)
 ├── assets/                 # Images, fonts, and other assets
 ├── ios/
