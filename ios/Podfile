@@ -36,12 +36,6 @@ target 'Runner' do
   # Stripe iOS SDK
   pod 'Stripe', '~> 23.0'
   pod 'StripePaymentSheet', '~> 23.0'
-  
-  # Permission handler - iOS specific pods
-  pod 'Permission-Camera', :path => "#{flutter_root}/packages/permission_handler/ios/permission_handler.podspec"
-  pod 'Permission-Photos', :path => "#{flutter_root}/packages/permission_handler/ios/permission_handler.podspec"
-  pod 'Permission-Notifications', :path => "#{flutter_root}/packages/permission_handler/ios/permission_handler.podspec"
-  pod 'Permission-LocationWhenInUse', :path => "#{flutter_root}/packages/permission_handler/ios/permission_handler.podspec"
 end
 
 post_install do |installer|
