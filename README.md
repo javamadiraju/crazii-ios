@@ -105,10 +105,10 @@ flutter build ios --release
 
 Builds run automatically on push/PR to `main` and can be triggered manually:
 
-- **Build iOS** (macOS): `flutter build ios --no-codesign`, artifact `ios-build` (Runner.app) retained 14 days.
+- **Build iOS** (macOS): `flutter build ios --simulator` (no code signing needed). Artifact `ios-simulator-build` (Runner.app) retained 14 days. Use this app in Xcode’s iOS Simulator.
 - **Analyze** (Ubuntu): `flutter analyze` to check for issues.
 
-Go to the **Actions** tab in the repo to run a workflow or download the latest iOS build artifact.
+For a **device** or **App Store** build you need a Development Team and to run `flutter build ios` or `flutter build ipa` locally. Go to the **Actions** tab to download the latest simulator build.
 
 ## Troubleshooting
 
