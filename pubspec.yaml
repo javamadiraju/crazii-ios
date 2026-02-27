@@ -76,6 +76,10 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
 
+# Resolve conflict: flutter_test wants collection 1.18.0, flutter_html wants ^1.19.0
+dependency_overrides:
+  collection: ^1.19.0
+
 # =====================================
 # iOS SPLASH SCREEN CONFIGURATION
 # =====================================
