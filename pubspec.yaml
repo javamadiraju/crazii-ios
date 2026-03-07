@@ -59,8 +59,8 @@ dependencies:
   multi_dropdown: ^3.0.1
   adoptive_calendar: ^0.2.0
 
-  # Utils (0.19.0 required by flutter_localizations from SDK)
-  intl: ^0.19.0
+  # Utils (0.20.2 required by flutter_localizations from SDK)
+  intl: ^0.20.2
   provider: ^6.1.0
   crypto: ^3.0.6
   video_player: ^2.9.1
@@ -77,10 +77,9 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 # Resolve conflict: flutter_test wants collection 1.18.0, flutter_html wants ^1.19.0
-# Pin stripe_platform_interface: 11.5.0 uses Color.r/g/b/a (Flutter 3.41+); CI uses Flutter 3.24
+# stripe_platform_interface: Use default (11.5.0) for Flutter 3.41+; 11.4.0 needed for CI/Flutter 3.24
 dependency_overrides:
   collection: ^1.19.0
-  stripe_platform_interface: 11.4.0
 
 # =====================================
 # iOS SPLASH SCREEN CONFIGURATION

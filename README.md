@@ -7,7 +7,13 @@ This is the iOS version of the Crazii Flutter application.
 1. **macOS** - iOS development requires a Mac
 2. **Xcode 15+** - Install from the App Store
 3. **Flutter SDK** - [Install Flutter](https://flutter.dev/docs/get-started/install/macos)
-4. **CocoaPods** - Install via `sudo gem install cocoapods`
+4. **CocoaPods** - See setup options below
+5. **iOS Simulator Runtime** - Download via `xcodebuild -downloadPlatform iOS` if not installed
+
+### CocoaPods Setup Options
+
+- **Recommended (CocoaPods 1.12+):** Install Ruby 3.x (e.g. via [rbenv](https://github.com/rbenv/rbenv) or Homebrew) then `gem install cocoapods`
+- **macOS system Ruby 2.6:** Use CocoaPods 1.10.2 with workaround (see [scripts/build-ios.sh](scripts/build-ios.sh))
 
 ## Setup Instructions
 
@@ -54,6 +60,11 @@ open ios/Runner.xcworkspace
 4. Update the **Bundle Identifier** if needed (currently: `com.example.freebankingapp`)
 
 ### 6. Build and Run
+
+**Quick build (simulator):**
+```bash
+./scripts/build-ios.sh
+```
 
 **From Terminal:**
 ```bash
