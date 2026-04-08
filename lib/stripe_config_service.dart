@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:freebankingapp/freebankingapp/utils/language_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StripeConfigService {
   static Future<void> initStripe() async {
-    final String langCode = LanguageUtils.getLanguageCode();
+    // GetMaterialApp is not running yet; read saved language instead of Get.locale.
+    final prefs = await SharedPreferences.getInstance();
+    final String langCode = prefs.getString('language') ?? 'en';
     final String _url =
         "https://cgmember.com/api/stripe/get-keys?lang=$langCode";
     final response = await http.get(Uri.parse(_url));

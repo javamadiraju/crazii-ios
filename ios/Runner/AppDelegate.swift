@@ -14,43 +14,55 @@ import BackgroundTasks
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        // Plugins and Flutter engine must be ready before touching rootViewController / window.
+        GeneratedPluginRegistrant.register(with: self)
+        let launchedOk = super.application(application, didFinishLaunchingWithOptions: launchOptions)
         
-        // Setup Flutter method channel for notification handling
-        if let controller = window?.rootViewController as? FlutterViewController {
-            methodChannel = FlutterMethodChannel(
-                name: CHANNEL,
-                binaryMessenger: controller.binaryMessenger
-            )
-        }
+        setupNotificationMethodChannel()
         
-        // Set notification delegate
         UNUserNotificationCenter.current().delegate = self
-        
-        // Register for remote notifications
         application.registerForRemoteNotifications()
         
-        // Start the notification polling service
         NotificationService.shared.startService()
         
-        // Register background tasks (iOS 13+)
         if #available(iOS 13.0, *) {
             registerBackgroundTasks()
         }
         
-        // Handle notification if app was launched from notification
         if let notification = launchOptions?[.remoteNotification] as? [String: Any] {
             handleNotificationPayload(notification)
         }
         
-        GeneratedPluginRegistrant.register(with: self)
-        return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+        return launchedOk
+    }
+    
+    /// Method channel for native → Flutter notification taps (after FlutterViewController exists).
+    private func setupNotificationMethodChannel() {
+        if let controller = window?.rootViewController as? FlutterViewController {
+            attachNotificationChannel(to: controller)
+            return
+        }
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self,
+                  let controller = self.window?.rootViewController as? FlutterViewController else {
+                print("[AppDelegate] FlutterViewController not available for notification channel")
+                return
+            }
+            self.attachNotificationChannel(to: controller)
+        }
+    }
+    
+    private func attachNotificationChannel(to controller: FlutterViewController) {
+        methodChannel = FlutterMethodChannel(
+            name: CHANNEL,
+            binaryMessenger: controller.binaryMessenger
+        )
     }
     
     // MARK: - Background Tasks Registration (iOS 13+)
     
     @available(iOS 13.0, *)
     private func registerBackgroundTasks() {
-        // Register the background app refresh task
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: NotificationService.backgroundTaskIdentifier,
             using: nil
@@ -65,16 +77,13 @@ import BackgroundTasks
     private func handleAppRefresh(task: BGAppRefreshTask) {
         print("[\(TAG)] Handling background app refresh")
         
-        // Schedule the next background task
         NotificationService.shared.scheduleBackgroundTask()
         
-        // Set expiration handler
         task.expirationHandler = {
             print("[\(self.TAG)] Background task expired")
             task.setTaskCompleted(success: false)
         }
         
-        // Check for notifications
         NotificationService.shared.checkNotificationsNow { success in
             print("[\(self.TAG)] Background task completed: \(success)")
             task.setTaskCompleted(success: success)
@@ -114,7 +123,6 @@ import BackgroundTasks
         
         print("[\(TAG)] Notification clicked: \(title) | \(body)")
         
-        // Send to Flutter
         methodChannel?.invokeMethod("notificationClick", arguments: [
             "title": title,
             "body": body,
@@ -132,7 +140,6 @@ import BackgroundTasks
     ) {
         print("[\(TAG)] Received remote notification")
         
-        // Check for new notifications
         NotificationService.shared.checkNotificationsNow { success in
             completionHandler(success ? .newData : .noData)
         }
@@ -158,7 +165,6 @@ import BackgroundTasks
 
 extension AppDelegate {
     
-    // Handle notification when app is in foreground
     override func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
@@ -166,7 +172,6 @@ extension AppDelegate {
     ) {
         print("[\(TAG)] Notification received in foreground")
         
-        // Show the notification even when app is in foreground
         if #available(iOS 14.0, *) {
             completionHandler([.banner, .sound, .badge])
         } else {
@@ -174,7 +179,6 @@ extension AppDelegate {
         }
     }
     
-    // Handle notification tap
     override func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
@@ -183,7 +187,6 @@ extension AppDelegate {
         let userInfo = response.notification.request.content.userInfo
         print("[\(TAG)] Notification tapped: \(userInfo)")
         
-        // Handle the notification payload
         if let payload = userInfo as? [String: Any] {
             handleNotificationPayload(payload)
         }

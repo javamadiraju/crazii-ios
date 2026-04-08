@@ -44,11 +44,7 @@ class NotificationService: NSObject {
         
         // Start foreground polling
         startForegroundPolling()
-        
-        // Register background tasks (iOS 13+)
-        if #available(iOS 13.0, *) {
-            registerBackgroundTask()
-        }
+        // Background task registration must happen only once (AppDelegate registers the same identifier).
     }
     
     /// Stop the notification polling service
@@ -120,19 +116,8 @@ class NotificationService: NSObject {
     }
     
     // MARK: - Background Task (iOS 13+)
-    
-    @available(iOS 13.0, *)
-    private func registerBackgroundTask() {
-        BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: NotificationService.backgroundTaskIdentifier,
-            using: nil
-        ) { [weak self] task in
-            self?.handleBackgroundTask(task: task as! BGAppRefreshTask)
-        }
-        
-        print("[\(TAG)] Background task REGISTERED")
-    }
-    
+    // Registration is performed in AppDelegate only; duplicate register crashes the app at launch.
+
     @available(iOS 13.0, *)
     func scheduleBackgroundTask() {
         let request = BGAppRefreshTaskRequest(identifier: NotificationService.backgroundTaskIdentifier)
@@ -143,26 +128,6 @@ class NotificationService: NSObject {
             print("[\(TAG)] Background task SCHEDULED")
         } catch {
             print("[\(TAG)] Failed to schedule background task: \(error)")
-        }
-    }
-    
-    @available(iOS 13.0, *)
-    private func handleBackgroundTask(task: BGAppRefreshTask) {
-        print("[\(TAG)] Background task RUNNING")
-        
-        // Schedule the next background task
-        scheduleBackgroundTask()
-        
-        // Set expiration handler
-        task.expirationHandler = {
-            print("[\(self.TAG)] Background task EXPIRED")
-            task.setTaskCompleted(success: false)
-        }
-        
-        // Check for notifications
-        checkMarketNotifications { success in
-            print("[\(self.TAG)] Background task COMPLETED: \(success)")
-            task.setTaskCompleted(success: success)
         }
     }
     

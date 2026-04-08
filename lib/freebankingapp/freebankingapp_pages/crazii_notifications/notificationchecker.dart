@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'notification_detail_screen.dart'; // this is actually NotificationDetail
-import 'NotificationDetail.dart'; // this is actually NotificationDetail
+import 'NotificationDetail.dart';
 import '../../../main.dart';
 
 class NotificationChecker extends StatefulWidget {
