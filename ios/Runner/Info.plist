@@ -81,6 +81,8 @@
 	<string>This app needs location access to show nearby services.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs location access to provide location-based services.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Crazii uses your location while you use the app and, when allowed, in the background to provide location-based features and services.</string>
 	
 	<!-- App Transport Security -->
 	<key>NSAppTransportSecurity</key>
