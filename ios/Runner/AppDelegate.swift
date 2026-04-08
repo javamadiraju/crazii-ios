@@ -67,7 +67,12 @@ import BackgroundTasks
             forTaskWithIdentifier: NotificationService.backgroundTaskIdentifier,
             using: nil
         ) { task in
-            self.handleAppRefresh(task: task as! BGAppRefreshTask)
+            guard let refreshTask = task as? BGAppRefreshTask else {
+                print("[\(self.TAG)] Unexpected BGTask type: \(type(of: task))")
+                task.setTaskCompleted(success: false)
+                return
+            }
+            self.handleAppRefresh(task: refreshTask)
         }
         
         print("[\(TAG)] Background tasks registered")
