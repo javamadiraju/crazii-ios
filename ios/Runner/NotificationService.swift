@@ -14,7 +14,10 @@ class NotificationService: NSObject {
     private let MARKET_CHANNEL_ID = "MarketNotificationChannel"
     
     // Background task identifier
-    static let backgroundTaskIdentifier = "com.example.freebankingapp.notificationPoll"
+    static var backgroundTaskIdentifier: String {
+        let bundleId = Bundle.main.bundleIdentifier ?? "com.example.freebankingapp"
+        return "\(bundleId).notificationPoll"
+    }
     
     // Polling timer for foreground
     private var pollingTimer: Timer?

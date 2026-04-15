@@ -57,7 +57,7 @@
 	<!-- Background Task Identifiers (iOS 13+) -->
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.example.freebankingapp.notificationPoll</string>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).notificationPoll</string>
 	</array>
 	
 	<!-- ==================== PERMISSIONS ==================== -->
